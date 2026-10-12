@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Participants, scores and leaderboard for your quizzes.">
+<title>Dashboard – Quiz Maker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🧠%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+<main>
+  <h1>📊 Dashboard</h1>
+  <p class="sub">See who joined your shared quizzes, their scores and the leaderboard.</p>
+  <div class="card hide" id="noapi">
+    <h2 style="margin:0 0 8px;font-size:21px">Set up participant tracking</h2>
+    <p>Dashboard needs a results connection. Add your Supabase details (or Google web app URL) in <b>site.js</b>, then reload this page.</p>
+  </div>
+  <div class="card" id="keybox">
+    <label for="key">🔑 Admin key</label>
+    <input type="text" id="key" autocomplete="off" placeholder="The ADMIN_KEY from your Apps Script">
+    <div class="row"><button class="btn" id="load">📥 Open dashboard</button></div>
+    <p class="err" id="msg" role="alert"></p>
+  </div>
+  <div id="dash" class="hide">
+    <div class="tiles">
+      <div class="tile"><b id="tq">0</b><span>Quizzes shared</span></div>
+      <div class="tile"><b id="tp">0</b><span>Total participants</span></div>
+      <div class="tile"><b id="ta">0%</b><span>Average score</span></div>
+      <div class="tile"><b id="tl">-</b><span>Last played</span></div>
+    </div>
+    <div class="card">
+      <h2 style="margin:0 0 12px;font-size:21px">🏆 Quiz leaderboard</h2>
+      <label for="qsel">🎬 Choose a quiz</label>
+      <select id="qsel"></select>
+      <div class="tiles" style="margin:16px 0 0">
+        <div class="tile"><b id="sp">0</b><span>Participants</span></div>
+        <div class="tile"><b id="sa">0%</b><span>Average score</span></div>
+        <div class="tile"><b id="sb">-</b><span>Top score</span></div>
+        <div class="tile"><b id="sd">-</b><span>Last played</span></div>
+      </div>
+      <div class="tw"><table><thead><tr><th>Rank</th><th>Name</th><th>Score</th><th>Points</th><th>%</th><th>Time</th><th>Date</th></tr></thead><tbody id="tb"></tbody></table></div>
+      <div class="row"><button class="btn ghost" id="refresh">🔄 Refresh</button><button class="btn ghost" id="csv">⬇️ Download CSV</button><button class="btn ghost" id="lock">🔒 Change key</button></div>
+    </div>
+    <div class="card">
+      <h2 style="margin:0 0 4px;font-size:21px">🌟 All-time top players</h2>
+      <p class="hint" style="margin-top:0">Points added up across all your quizzes.</p>
+      <div class="tw"><table><thead><tr><th>Rank</th><th>Name</th><th>Quizzes</th><th>Total points</th><th>Best %</th></tr></thead><tbody id="tt"></tbody></table></div>
+    </div>
+  </div>
+</main>
+<script src="site.js"></script>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)},rows=[],sel="";
+if(!Store.on()){$("noapi").classList.remove("hide");$("keybox").classList.add("hide");return}
+try{$("key").value=localStorage.getItem("qm_key")||""}catch(e){}
+function td(t,tr){var c=document.createElement("td");c.textContent=t;tr.appendChild(c)}
+function dt(t){var d=new Date(t);return isNaN(d)?"-":d.toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})}
+function fmt(t){var d=new Date(t);return isNaN(d)?"":dt(t)+" "+d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}
+function medal(n){return ["🥇","🥈","🥉"][n]||n+1}
+async function load(){
+  var k=$("key").value.trim();$("msg").textContent="⏳ Loading...";
+  try{var r=await Store.all(k);
+    if(r.error){$("msg").textContent="⚠️ Wrong admin key";return}
+    try{localStorage.setItem("qm_key",k)}catch(e){}
+    rows=r.rows;$("msg").textContent="";$("keybox").classList.add("hide");$("dash").classList.remove("hide");render()}
+  catch(e){$("msg").textContent="⚠️ Could not load. Check your results setup in site.js."}}
+function groups(){var g={};rows.forEach(function(x){var q=g[x.id]=g[x.id]||{id:x.id,title:x.title,list:[],last:""};q.list.push(x);if(x.t>q.last)q.last=x.t});
+  return Object.keys(g).map(function(k){return g[k]}).sort(function(a,b){return a.last<b.last?1:-1})}
+function avg(L){return L.length?Math.round(L.reduce(function(s,x){return s+x.pct},0)/L.length):0}
+function render(){
+  var G=groups(),m=location.hash.match(/id=([^&]+)/);if(m&&!sel)sel=m[1];
+  if(!G.some(function(q){return q.id===sel}))sel=G.length?G[0].id:"";
+  $("tq").textContent=G.length;$("tp").textContent=rows.length;$("ta").textContent=avg(rows)+"%";$("tl").textContent=G.length?dt(G[0].last):"-";
+  var o=$("qsel");o.innerHTML="";
+  G.forEach(function(q){var e=document.createElement("option");e.value=q.id;e.textContent=(q.title||"Untitled quiz")+" · "+dt(q.last)+" · "+q.list.length+" players";if(q.id===sel)e.selected=true;o.appendChild(e)});
+  var q=G.filter(function(x){return x.id===sel})[0],tb=$("tb");tb.innerHTML="";
+  if(q){var L=q.list.slice().sort(function(a,b){return b.pts-a.pts||a.sec-b.sec});
+    $("sp").textContent=L.length;$("sa").textContent=avg(L)+"%";$("sb").textContent=L[0].score+"/"+L[0].total;$("sd").textContent=dt(q.last);
+    L.forEach(function(x,n){var tr=document.createElement("tr");td(medal(n),tr);td(x.name,tr);td(x.score+"/"+x.total,tr);td(x.pts,tr);td(x.pct+"%",tr);td(x.sec+"s",tr);td(fmt(x.t),tr);tb.appendChild(tr)})}
+  else{$("sp").textContent="0";$("sa").textContent="-";$("sb").textContent="-";$("sd").textContent="-"}
+  var P={};rows.forEach(function(x){var k=String(x.name).trim().toLowerCase(),p=P[k]=P[k]||{name:x.name,n:0,pts:0,best:0};p.n++;p.pts+=x.pts;if(x.pct>p.best)p.best=x.pct});
+  var T=Object.keys(P).map(function(k){return P[k]}).sort(function(a,b){return b.pts-a.pts}).slice(0,10),tt=$("tt");tt.innerHTML="";
+  T.forEach(function(p,n){var tr=document.createElement("tr");td(medal(n),tr);td(p.name,tr);td(p.n,tr);td(p.pts,tr);td(p.best+"%",tr);tt.appendChild(tr)})}
+$("qsel").onchange=function(){sel=this.value;render()};
+$("load").onclick=load;$("refresh").onclick=load;
+$("lock").onclick=function(){try{localStorage.removeItem("qm_key")}catch(e){}$("key").value="";$("dash").classList.add("hide");$("keybox").classList.remove("hide")};
+$("csv").onclick=function(){var q=groups().filter(function(x){return x.id===sel})[0];if(!q)return;
+  var e=function(v){return '"'+String(v).replace(/"/g,'""')+'"'};
+  var out=["Date,Name,Score,Total,Points,Percent,Seconds,Quiz"].concat(q.list.map(function(x){return [fmt(x.t),x.name,x.score,x.total,x.pts,x.pct,x.sec,x.title].map(e).join(",")}));
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([out.join("\n")],{type:"text/csv"}));a.download="quiz-results.csv";a.click()};
+if($("key").value)load();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Paste questions and answers and get an interactive quiz.">
+<title>Quiz Maker – Make a quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🧠%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+<main>
+<section id="setup">
+  <div class="hero">
+    <h1>Turn any list into an interactive quiz</h1>
+    <p>Paste your questions and answers, pick your settings, then play or share a quiz-only link with your audience.</p>
+    <div class="steps"><span><b>1</b>Paste questions</span><span><b>2</b>Customize</span><span><b>3</b>Play and share</span></div>
+  </div>
+  <div class="card setup">
+    <div class="colA">
+    <h2 class="step step-first"><span>1</span>Quiz details</h2>
+    <div class="two">
+      <div><label for="chan">📺 Channel name</label><input type="text" id="chan" placeholder="e.g. Quiz With Sam" maxlength="60"></div>
+      <div><label for="title">🎬 Quiz title</label><input type="text" id="title" placeholder="e.g. Weekly Quiz #12" maxlength="80"></div>
+    </div>
+    <h2 class="step"><span>2</span>Your questions</h2>
+    <label for="src">📝 Questions and answers</label>
+    <textarea id="src" spellcheck="false" placeholder="Question | Answer"></textarea>
+    <p class="hint" id="det"></p>
+    <p class="hint">One per line, split with <b>|</b> or <b>::</b> (e.g. <b>Capital of Japan? | Tokyo</b>). Emojis work in questions and answers 🎉<br>Optional extras: <b>Question | Answer | Fun fact 💡 | hard</b> (easy, medium or hard).</p>
+    </div>
+    <div class="colB">
+    <h2 class="step"><span>3</span>Quiz settings</h2>
+    <div class="two">
+      <div><label for="tmr">⏱️ Timer per question</label><select id="tmr"><option value="0">Off</option><option value="10">10 seconds</option><option value="15" selected>15 seconds</option><option value="20">20 seconds</option><option value="30">30 seconds</option></select></div>
+      <div><label for="cnt">🔢 Questions per quiz</label><select id="cnt"><option value="">All</option><option>5</option><option>10</option><option>15</option><option>20</option></select></div>
+    </div>
+    <div class="two">
+      <div><label for="auto">⏭️ After each answer</label><select id="auto"><option value="0">Tap Next</option><option value="1">Auto-continue</option></select></div>
+      <div><label for="stream">🎥 Stream mode</label><select id="stream"><option value="0">Off</option><option value="1">On (bigger text)</option></select></div>
+    </div>
+    <label for="ctain">📣 Message at the end</label>
+    <input type="text" id="ctain" placeholder="Default: 👍 Like · 🔔 Subscribe · 💬 Comment your score!" maxlength="140" style="margin-bottom:14px">
+    <label>🎨 Theme color</label>
+    <div class="sw" id="sw"></div>
+    <label style="margin-top:4px">🎮 Quiz style</label>
+    <div class="row" style="margin-top:6px">
+      <div class="seg" role="group" aria-label="Quiz style">
+        <button id="m-mc" aria-pressed="true">🔘 Multiple choice</button>
+        <button id="m-ty" aria-pressed="false">⌨️ Type answer</button>
+      </div>
+    </div>
+    <h2 class="step"><span>4</span>Create your quiz</h2>
+    <div class="row">
+      <button class="btn" id="start">🚀 Start quiz</button>
+      <button class="btn ghost" id="share">🔗 Create share link</button>
+      <button class="btn ghost" id="sample">✨ Load sample</button>
+      <button class="btn ghost" id="clear">🗑️ Clear</button>
+    </div>
+    <p class="err" id="err" role="alert"></p>
+    <div id="sharebox" class="hide" style="margin-top:12px">
+      <label for="slink">🔗 Link for your participants</label>
+      <input type="text" id="slink" readonly>
+      <div class="row"><button class="btn" id="copylink">📋 Copy link</button></div>
+      <div id="lbpanel" class="hide" style="margin-top:16px">
+        <h3 style="margin:0 0 4px;font-size:19px">📊 Participants and leaderboard</h3>
+        <p class="hint" id="lbinfo" style="margin-top:0"></p>
+        <div class="tw"><table><thead><tr><th>Rank</th><th>Name</th><th>Score</th><th>Points</th><th>Date</th></tr></thead><tbody id="lbtb"></tbody></table></div>
+        <div class="row"><button class="btn ghost" id="lbref">🔄 Refresh</button><a class="btn ghost" id="dlink" href="dashboard.html" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">📊 Open dashboard</a></div>
+      </div>
+      <p class="hint" id="rl"></p>
+      <p class="hint" id="snote">Participants who open this link see only the quiz, not this maker page.</p>
+    </div>
+    </div>
+  </div>
+</section>
+
+<section id="welcome" class="hide">
+  <div class="card" style="text-align:center">
+    <div class="big pop">🎉</div>
+    <div class="brand"><div class="ch" id="wchan"></div><div class="tt" id="wtitle"></div></div>
+    <p class="sub" id="winfo"></p>
+    <div id="nameBox" class="hide" style="text-align:left;margin:0 0 14px"><label for="pname">👤 Your name (for the leaderboard)</label><input type="text" id="pname" maxlength="30" autocomplete="name" placeholder="Enter your name"><p class="err" id="werr" role="alert"></p></div>
+    <button class="btn" id="wstart">🚀 Start quiz</button>
+  </div>
+</section>
+
+<section id="play" class="hide">
+  <div class="brand" id="brand1"></div>
+  <div class="top"><span id="prog">1 / 5</span><span id="tsec"></span><span id="sc">⭐ 0</span><button class="btn ghost" id="snd" style="padding:0 12px;min-height:36px" aria-label="Sound on or off">🔊</button></div>
+  <div class="bar"><i id="fill"></i></div>
+  <p class="sub" id="mot" style="text-align:center;margin:0 0 12px;font-weight:600;min-height:1.5em"></p>
+  <div class="card">
+    <div class="tbar hide" id="tbar"><i id="tfill"></i></div>
+    <div class="badge hide" id="badge"></div>
+    <p class="q" id="qtext"></p>
+    <div class="opts" id="opts"></div>
+    <div class="row" id="life"><button class="btn ghost" id="ll5" style="padding:10px 20px">✂️ 50/50</button><button class="btn ghost" id="llskip" style="padding:10px 20px">⏭️ Skip (3)</button></div>
+    <div id="typebox" class="hide">
+      <input type="text" id="ans" placeholder="Your answer ✍️" autocomplete="off" autocapitalize="off">
+      <div class="row"><button class="btn" id="check">✅ Check</button></div>
+    </div>
+    <div class="fb" id="fb" aria-live="polite"></div>
+    <div class="row hide" id="nextrow"><button class="btn" id="next">Next ➡️</button></div>
+  </div>
+</section>
+
+<section id="done" class="hide">
+  <div class="card">
+    <div class="brand" id="brand2"></div>
+    <div class="big pop" id="trophy">🏆</div>
+    <p class="score" id="final"></p>
+    <p class="sub" id="msg" style="text-align:center;margin-top:6px"></p>
+    <div id="lb" class="hide"></div>
+    <ul class="rev" id="rev"></ul>
+    <p class="cta" id="cta"></p>
+    <div class="row">
+      <button class="btn" id="again">🔁 Play again</button>
+      <button class="btn ghost" id="copy">📋 Copy result</button>
+      <button class="btn ghost" id="edit">✏️ Edit questions</button>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="go hide" id="go" aria-live="assertive"></div>
+<script src="site.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

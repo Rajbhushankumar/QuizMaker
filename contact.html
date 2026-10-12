@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Get in touch with Quiz Maker.">
+<title>Contact us – Quiz Maker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🧠%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+<main>
+  <h1>✉️ Contact us</h1>
+  <p class="sub">Questions, ideas or feedback? We would love to hear from you. 💬</p>
+  <div class="cols">
+  <div class="card">
+    <h2 style="margin:0 0 8px;font-size:22px">📬 Get in touch</h2>
+    <p class="sub" style="margin:0 0 14px">Reach us any time. We read every message.</p>
+    <p id="lnk" style="font-weight:600"></p>
+  </div>
+  <div class="card">
+    <label for="nm">👤 Your name</label>
+    <input type="text" id="nm" autocomplete="name" style="margin-bottom:12px">
+    <label for="em">📧 Your email</label>
+    <input type="text" id="em" inputmode="email" autocomplete="email" style="margin-bottom:12px">
+    <label for="ms">💬 Message</label>
+    <textarea id="ms" style="min-height:150px"></textarea>
+    <div class="row"><button class="btn" id="send">📨 Send message</button></div>
+    <p class="hint" id="note">This opens your email app with the message ready to send.</p>
+  </div>
+  </div>
+</main>
+<script>
+window.addEventListener("DOMContentLoaded",function(){
+var $=function(i){return document.getElementById(i)};
+$("lnk").innerHTML="📧 <a href='mailto:"+SITE.email+"' style='color:inherit'>"+SITE.email+"</a>"+(SITE.youtube?" · 📺 <a href='"+SITE.youtube+"' style='color:inherit'>YouTube</a>":"");
+$("send").onclick=function(){var m=$("ms").value.trim();if(!m){$("note").textContent="⚠️ Please write a message first";return}
+  var b="Name: "+$("nm").value.trim()+"\nEmail: "+$("em").value.trim()+"\n\n"+m;
+  location.href="mailto:"+SITE.email+"?subject="+encodeURIComponent("Message from "+SITE.name)+"&body="+encodeURIComponent(b)};
+});
+</script>
+<script src="site.js"></script>
+</body>
+</html>
